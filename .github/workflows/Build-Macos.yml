@@ -34,7 +34,7 @@ jobs:
       - name: Install build dependencies (Homebrew)
         run: |
           brew update
-          brew install maven create-dmg
+          brew install create-dmg
         # build.sh checks for mvn and create-dmg and suggests installing them via Homebrew. [web:30][web:33][web:38]
 
       - name: Make build.sh executable
