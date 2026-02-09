@@ -1,0 +1,51 @@
+name: build-macos-dmg-1.17.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**.java'
+      - 'pom.xml'
+      - '.github/workflows/build-macos-dmg-1.17.1.yml'
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+
+    env:
+      MAVEN_OPTS: -Xmx2g
+      MAVEN_PROFILE: mac
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Adjust if you maintain a branch instead of the upstream tag
+          ref: refs/tags/1.17.1
+
+      - name: Set up Temurin JDK 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+          cache: maven
+
+      - name: Show Java version
+        run: java -version
+
+      - name: Build 1.17.1 with Maven (mac profile)
+        run: mvn -B clean install -P"${MAVEN_PROFILE}"
+        # Cryptomator’s build instructions use JDK 24 and Maven with OS-specific profiles like -Pmac. [web:2][web:21]
+
+      # Optional: add your own packaging/signing/notarization steps here
+      # For example, if you have a script in your fork:
+      # - name: Package .dmg
+      #   run: ./build/macos/package-dmg.sh target
+
+      - name: Archive build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: cryptomator-1.17.1-macos-build
+          path: |
+            target/**
