@@ -2,26 +2,20 @@ name: build-macos-dmg-1.17.1
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - '**.java'
-      - 'pom.xml'
-      - '.github/workflows/build-macos-dmg-1.17.1.yml'
 
 jobs:
-  build-macos:
+  macos-dmg:
     runs-on: macos-14
 
     env:
       MAVEN_OPTS: -Xmx2g
-      MAVEN_PROFILE: mac
+      JAVA_HOME: /Users/runner/hostedtoolcache/Java_Temurin-Hotspot_jdk/24.0.1-*/x64  # will be overridden by setup-java
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Adjust if you maintain a branch instead of the upstream tag
+          # 1.17.1 tag in your fork or upstream
           ref: refs/tags/1.17.1
 
       - name: Set up Temurin JDK 24
@@ -31,21 +25,33 @@ jobs:
           java-version: '24'
           cache: maven
 
-      - name: Show Java version
-        run: java -version
+      - name: Show Java and Maven
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          mvn -version
 
-      - name: Build 1.17.1 with Maven (mac profile)
-        run: mvn -B clean install -P"${MAVEN_PROFILE}"
-        # Cryptomator’s build instructions use JDK 24 and Maven with OS-specific profiles like -Pmac. [web:2][web:21]
+      - name: Install build dependencies (Homebrew)
+        run: |
+          brew update
+          brew install maven create-dmg
+        # build.sh checks for mvn and create-dmg and suggests installing them via Homebrew. [web:30][web:33][web:38]
 
-      # Optional: add your own packaging/signing/notarization steps here
-      # For example, if you have a script in your fork:
-      # - name: Package .dmg
-      #   run: ./build/macos/package-dmg.sh target
+      - name: Make build.sh executable
+        run: chmod +x dist/mac/dmg/build.sh
 
-      - name: Archive build output
+      # If you do NOT want codesigning/notarization in CI, omit -s/-t so script skips that part.
+      # If you have signing set up in secrets, pass them as options instead.
+      - name: Build Cryptomator 1.17.1 .dmg (unsigned)
+        working-directory: dist/mac/dmg
+        run: |
+          # JAVA_HOME is set by setup-java on the runner; script expects it to be set. [web:30]
+          ./build.sh
+        # This runs Maven with -Pmac, creates the custom runtime with jlink, jpackages the app,
+        # and finally calls create-dmg to produce Cryptomator-<version>.dmg in dist/mac/dmg. [web:30]
+
+      - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cryptomator-1.17.1-macos-build
-          path: |
-            target/**
+          name: cryptomator-1.17.1-macos-dmg
+          path: dist/mac/dmg/*.dmg
