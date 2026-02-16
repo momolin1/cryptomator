@@ -41,7 +41,7 @@ jobs:
 
       # If you do NOT want codesigning/notarization in CI, omit -s/-t so script skips that part.
       # If you have signing set up in secrets, pass them as options instead.
-      - name: Build Cryptomator 1.17.1 .dmg (unsigned)
+      - name: Build Cryptomator 1.18.0 .dmg (unsigned)
         working-directory: dist/mac/dmg
         run: |
           # JAVA_HOME is set by setup-java on the runner; script expects it to be set. [web:30]
@@ -52,5 +52,5 @@ jobs:
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cryptomator-1.17.1-macos-dmg
+          name: cryptomator-1.18.0-macos-dmg
           path: dist/mac/dmg/*.dmg
