@@ -1,4 +1,4 @@
-name: build-macos-dmg-1.17.1
+name: build-macos-dmg-1.18.0
 
 on:
   workflow_dispatch:
@@ -15,8 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # 1.17.1 tag in your fork or upstream
-          ref: refs/tags/1.17.1
+          ref: refs/tags/1.18.0
 
       - name: Set up Temurin JDK 24
         uses: actions/setup-java@v4
